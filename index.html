@@ -23,21 +23,24 @@
         }
 
         .input-group {
+            display: flex;
+            align-items: center;
             width: 100%;
-            max-width: 600px;
-            margin-bottom: 20px;
         }
 
         .input-group label {
-            display: block;
-            margin-bottom: 5px;
+            width: 100px;
+            text-align: left;
+            margin-right: 10px;
             font-weight: bold;
+            display: inline-block;
         }
 
         .input-group input {
-            width: 100%;
+            flex: 1;
             padding: 8px;
-            box-sizing: border-box;
+            border: 0px;
+            border-bottom: 1px solid;
         }
 
         #messages-container {
@@ -115,6 +118,8 @@
             width: 100%;
             max-width: 600px;
             margin-top: 20px;
+            font-size: small;
+            word-break: break-word;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
@@ -136,8 +141,12 @@
             <label for="apiKey">API Key:</label>
             <input type="text" id="apiKey">
         </div>
+        <div class="input-group">
+            <label for="params">Other Params:</label>
+            <input type="text" id="params" name="params" value='{ "temperature":1 }'>
+        </div>
         <div id="messages-container"></div>
-        <button onclick="addMessage()">添加消息</button>
+        <button onclick="addMessage()">Add Message</button>
         <div id="response-container">
             <div id="response-id"></div>
             <div id="response-usage"></div>
@@ -189,11 +198,11 @@
             const messages = [];
             container.childNodes.forEach(div => {
                 const role = div.querySelector('input[type="radio"]:checked').value;
-                const content = div.querySelector('textarea').value;
+                const content = div.querySelector('textarea').value.trim();
                 if (!role)
-                    throw new Error('消息角色不能为空');
+                    return toastr.warning('Role must be selected', '', { timeOut: 100 });
                 if (!content)
-                    throw new Error('消息内容不能为空');
+                    return toastr.warning('Message content must not be empty', '', { timeOut: 100 });
                 messages.push({ role, content });
             });
             return messages;
@@ -221,7 +230,6 @@
 
         function sendRequest() {
             try {
-                disableSendRequestButton();
 
                 const args = {};
                 args.url = document.getElementById('url').value;
@@ -229,15 +237,27 @@
                 args.apiKey = document.getElementById('apiKey').value;
                 Object.keys(args).forEach(key => {
                     if (!args[key])
-                        throw new Error(`${key}不能为空`);
+                        throw new Error(`${key} must not be empty`);
                 });
+
+                args.params = document.getElementById('params').value;
+                const requestParams = {};
+                if (args.params) {
+                    try {
+                        Object.assign(requestParams, JSON.parse(args.params));
+                    } catch (error) {
+                        throw new Error('Params must be a valid JSON object: ' + args.params);
+                    }
+                }
 
                 args.messages = wrapMessages();
                 if (args.messages.length === 0)
-                    throw new Error('消息不能为空');
+                    throw new Error('Messages must not be empty');
 
-                const requestBody = { ...args, url: undefined, apiKey: undefined, stream: false, temperature: 0 };
+                const requestBody = { ...args, ...requestParams, url: undefined, apiKey: undefined, params: undefined };
+                console.log('Request Body:', JSON.stringify(requestBody));
 
+                disableSendRequestButton();
                 fetch(args.url, {
                     method: 'POST',
                     headers: {
@@ -283,6 +303,7 @@
             document.getElementById('url').value = savedArgs.url || '';
             document.getElementById('model').value = savedArgs.model || '';
             document.getElementById('apiKey').value = savedArgs.apiKey || '';
+            document.getElementById('params').value = savedArgs.params || '{"temperature": 1, "stream": false}';
             const saveMessages = savedArgs.messages?.length ? savedArgs.messages : [{ role: 'system', content: '' }];
             saveMessages.forEach((message, index) => showMessage(message));
         }
