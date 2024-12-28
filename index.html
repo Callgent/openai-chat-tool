@@ -33,7 +33,7 @@
             text-align: left;
             margin-right: 10px;
             font-weight: bold;
-            font-size:smaller;
+            font-size: smaller;
             display: inline-block;
         }
 
@@ -58,6 +58,10 @@
             background-color: #f9f9f9;
         }
 
+        .textarea-container.focused {
+            position: relative;
+        }
+
         .textarea-container textarea {
             margin-bottom: 5px;
             padding: 8px;
@@ -79,13 +83,51 @@
             background-color: #ff1a1a;
         }
 
+        .maximize-button {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .textarea-container.focused .maximize-button {
+            display: inline-block;
+            position: absolute;
+            padding: 10px;
+        }
+
+        .textarea-container.maximized .maximize-button {
+            display: inline-block;
+            position: absolute;
+            z-index: 1001;
+            top: 0;
+            left: 0;
+            position: fixed;
+        }
+
+        .textarea-container.maximized textarea {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 5rem;
+            padding-top: 2rem;
+            width: 100%;
+            z-index: 1000;
+        }
+
         .radio-group {
             display: flex;
             gap: 6px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: smaller;
+            font-size: small;
         }
 
         .delete-button {
@@ -120,7 +162,7 @@
             width: 100%;
             max-width: 600px;
             margin-top: 20px;
-            padding-bottom: 15rem;
+            margin-bottom: 15rem;
             font-size: small;
             word-break: break-word;
         }
@@ -156,7 +198,8 @@
         </div>
     </div>
     <div class="fixed-bottom">
-        <span style="float: right; font-size: smaller; margin: 1em;word-break: break-word;">Support: response.choices[0].message.content</span>
+        <span style="float: right; font-size: smaller; margin: 1em; word-break: break-word;">Support:
+            response.choices[0].message.content</span>
         <button onclick="sendRequest()" id="sendRequestButton">Send Request</button>
     </div>
 
@@ -177,6 +220,7 @@
             const div = document.createElement('div');
             div.className = 'textarea-container';
             div.innerHTML = `
+                <button class="maximize-button">Max</button>
                 <div class="radio-group">
                 <label>Role:</label>
                 <input type="radio" class="radio" name="role${messageIndex}" id="s${messageIndex}" value="system" ${newRole === 'system' ? 'checked' : ''}><label for="s${messageIndex}">System</label>
@@ -309,6 +353,28 @@
             document.getElementById('params').value = savedArgs.params || '{"temperature": 1, "stream": false}';
             const saveMessages = savedArgs.messages?.length ? savedArgs.messages : [{ role: 'system', content: '' }];
             saveMessages.forEach((message, index) => showMessage(message));
+
+            const messagesContainer = document.getElementById('messages-container');
+            messagesContainer.addEventListener('focus', function (event) {
+                if (event.target.tagName === 'TEXTAREA') {
+                    document.querySelectorAll('.maximize-button').forEach(b => b.closest('.textarea-container').classList.remove('focused'));
+                    const textareaContainer = event.target.closest('.textarea-container');
+                    textareaContainer.classList.add('focused');
+                }
+            }, true);
+            // messagesContainer.addEventListener('blur', function (event) {
+            // if (event.target.tagName === 'TEXTAREA') {
+            //     const textareaContainer = event.target.closest('.textarea-container');
+            //     textareaContainer.classList.remove('focused');
+            //     textareaContainer.classList.remove('maximized');
+            // }
+            // }, true);
+            messagesContainer.addEventListener('click', function (event) {
+                if (event.target.classList.contains('maximize-button')) {
+                    const textareaContainer = event.target.closest('.textarea-container');
+                    textareaContainer.classList.toggle('maximized');
+                }
+            });
         }
     </script>
 </body>
