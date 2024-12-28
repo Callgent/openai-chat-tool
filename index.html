@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>OpenAI Chat Tool</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 100%;
+            height: calc(100vh - 60px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .input-group {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        #messages-container {
+            width: 100%;
+        }
+
+        .textarea-container {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .textarea-container textarea {
+            margin-bottom: 5px;
+            padding: 8px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .textarea-container button {
+            align-self: flex-end;
+            padding: 5px 10px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .textarea-container button:hover {
+            background-color: #ff1a1a;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-button {
+            margin-left: auto;
+        }
+
+        .fixed-bottom {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #fff;
+            padding: 10px 20px;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+        }
+
+        .fixed-bottom button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .fixed-bottom button:hover {
+            background-color: #0056b3;
+        }
+
+        #response-container {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="input-group">
+            <label for="url">URL:</label>
+            <input type="text" id="url">
+        </div>
+        <div class="input-group">
+            <label for="model">Model Name:</label>
+            <input type="text" id="model">
+        </div>
+        <div class="input-group">
+            <label for="apiKey">API Key:</label>
+            <input type="text" id="apiKey">
+        </div>
+        <div id="messages-container"></div>
+        <button onclick="addMessage()">添加消息</button>
+        <div id="response-container">
+            <div id="response-id"></div>
+            <div id="response-usage"></div>
+        </div>
+    </div>
+    <div class="fixed-bottom">
+        <span style="float: right; font-size: smaller; margin: 1em;">Support: response.choices[0].message.content</span>
+        <button onclick="sendRequest()" id="sendRequestButton">Send Request</button>
+    </div>
+
+    <script>
+        let messageIndex = 0;
+        function addMessage() {
+            const container = document.getElementById('messages-container');
+            const lastMessage = container.lastElementChild;
+            let newRole = 'user';
+
+            if (lastMessage) {
+                const lastRole = lastMessage.querySelector('input[type="radio"]:checked');
+                if (lastRole && lastRole.value === 'user') {
+                    newRole = 'assistant';
+                }
+            }
+
+            const div = document.createElement('div');
+            div.className = 'textarea-container';
+            div.innerHTML = `
+                <div class="radio-group">
+                <label>Role:</label>
+                <input type="radio" class="radio" name="role${messageIndex}" id="s${messageIndex}" value="system" ${newRole === 'system' ? 'checked' : ''}><label for="s${messageIndex}">System</label>
+                <input type="radio" class="radio" name="role${messageIndex}" id="u${messageIndex}" value="user" ${newRole === 'user' ? 'checked' : ''}><label for="u${messageIndex}">User</label>
+                <input type="radio" class="radio" name="role${messageIndex}" id="a${messageIndex}" value="assistant" ${newRole === 'assistant' ? 'checked' : ''}><label for="a${messageIndex}">Assistant</label>
+                <button class="delete-button" onclick="removeMessage(this)">X</button>
+                </div>
+                <textarea rows="4" cols="50" onchange="saveMessages()"></textarea>
+            `;
+            messageIndex++;
+            return container.appendChild(div);
+        }
+
+        function removeMessage(button) {
+            const container = document.getElementById('messages-container');
+            container.removeChild(button.parentElement.parentElement);
+            saveMessages();
+        }
+
+        function wrapMessages() {
+            const container = document.getElementById('messages-container');
+            const messages = [];
+            container.childNodes.forEach(div => {
+                const role = div.querySelector('input[type="radio"]:checked').value;
+                const content = div.querySelector('textarea').value;
+                if (!role)
+                    throw new Error('消息角色不能为空');
+                if (!content)
+                    throw new Error('消息内容不能为空');
+                messages.push({ role, content });
+            });
+            return messages;
+        }
+
+        function saveMessages() {
+            const messages = wrapMessages();
+            const savedArgs = JSON.parse(localStorage.getItem('args')) || {};
+            savedArgs.messages = messages;
+            localStorage.setItem('args', JSON.stringify(savedArgs));
+            console.log("Messages saved!");
+        }
+
+        function disableSendRequestButton() {
+            const button = document.getElementById('sendRequestButton');
+            button.disabled = true;
+            button.style.backgroundColor = '#ccc';
+        }
+
+        function enableSendRequestButton() {
+            const button = document.getElementById('sendRequestButton');
+            button.disabled = false;
+            button.style.backgroundColor = '#007bff';
+        }
+
+        function sendRequest() {
+            try {
+                disableSendRequestButton();
+
+                const args = {};
+                args.url = document.getElementById('url').value;
+                args.model = document.getElementById('model').value;
+                args.apiKey = document.getElementById('apiKey').value;
+                Object.keys(args).forEach(key => {
+                    if (!args[key])
+                        throw new Error(`${key}不能为空`);
+                });
+
+                args.messages = wrapMessages();
+                if (args.messages.length === 0)
+                    throw new Error('消息不能为空');
+
+                const requestBody = { ...args, url: undefined, apiKey: undefined, stream: false, temperature: 0 };
+
+                fetch(args.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${args.apiKey}`
+                    },
+                    body: JSON.stringify(requestBody)
+                })
+                    .then(response => { const json = response.json(); json.statusCode = response.status; return json; })
+                    .then(data => {
+                        const content = data.choices?.length && data.choices[0].message?.content;
+                        if (!content)
+                            return toastr.error(JSON.stringify(data), data.statusCode, { timeOut: 1500 });
+
+                        const responseId = document.getElementById('response-id');
+                        const responseUsage = document.getElementById('response-usage');
+                        responseId.textContent = `ID: ${data.id}`;
+                        responseUsage.textContent = `Usage: ${JSON.stringify(data.usage)}`;
+
+                        const message = { role: 'assistant', content };
+                        args.messages.push(message);
+                        localStorage.setItem('args', JSON.stringify(args));
+                        showMessage(message);
+                    }).catch(error => {
+                        throw error;
+                    }).finally(() => {
+                        enableSendRequestButton();
+                    });
+            } catch (error) {
+                // 显示错误消息为Toast
+                toastr.error(error.message, error.name, { timeOut: 500 });
+            }
+        }
+
+        function showMessage(message) {
+            const container = addMessage();
+            container.querySelector(`input[value="${message.role}"]`).checked = true;
+            container.querySelector('textarea').value = message.content;
+        }
+
+        window.onload = function () {
+            const savedArgs = JSON.parse(localStorage.getItem('args')) || {};
+            document.getElementById('url').value = savedArgs.url || '';
+            document.getElementById('model').value = savedArgs.model || '';
+            document.getElementById('apiKey').value = savedArgs.apiKey || '';
+            const saveMessages = savedArgs.messages?.length ? savedArgs.messages : [{ role: 'system', content: '' }];
+            saveMessages.forEach((message, index) => showMessage(message));
+        }
+    </script>
+</body>
+
+</html>
