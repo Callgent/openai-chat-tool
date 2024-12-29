@@ -260,19 +260,31 @@
             const savedArgs = JSON.parse(localStorage.getItem('args')) || {};
             savedArgs.messages = messages;
             localStorage.setItem('args', JSON.stringify(savedArgs));
-            console.log("Messages saved!");
+            toastr.info("Messages saved into local storage!", "", { timeOut: 100 });
         }
 
+        let requestTimer = null;
         function disableSendRequestButton() {
             const button = document.getElementById('sendRequestButton');
             button.disabled = true;
             button.style.backgroundColor = '#ccc';
+
+            if (requestTimer)
+                clearInterval(requestTimer);
+            requestTimer = setInterval(() => {
+                requestTimer.time = (requestTimer.time || 0) + 1;
+                button.textContent = `Sending Request (${requestTimer.time}s)`;
+            }, 1000);
         }
 
         function enableSendRequestButton() {
+            if (requestTimer)
+                clearInterval(requestTimer) && (requestTimer = null);
+
             const button = document.getElementById('sendRequestButton');
             button.disabled = false;
             button.style.backgroundColor = '#007bff';
+            button.textContent = 'Send Request';
         }
 
         function sendRequest() {
@@ -322,6 +334,7 @@
                         const responseId = document.getElementById('response-id');
                         const responseUsage = document.getElementById('response-usage');
                         responseId.textContent = `ID: ${data.id}`;
+                        requestTimer && (data.usage.time = requestTimer.time);
                         responseUsage.textContent = `Usage: ${JSON.stringify(data.usage)}`;
 
                         const message = { role: 'assistant', content };
