@@ -260,7 +260,7 @@
             const savedArgs = JSON.parse(localStorage.getItem('args')) || {};
             savedArgs.messages = messages;
             localStorage.setItem('args', JSON.stringify(savedArgs));
-            toastr.info("Messages saved into local storage!", "", { timeOut: 100 });
+            toastr.info("Messages saved,", "", { timeOut: 500 });
         }
 
         let requestTimer = null;
