@@ -271,9 +271,10 @@
 
             if (requestTimer)
                 clearInterval(requestTimer);
+            button.time = 0;
             requestTimer = setInterval(() => {
-                requestTimer.time = (requestTimer.time || 0) + 1;
-                button.textContent = `Sending Request (${requestTimer.time}s)`;
+                button.time = button.time + 1;
+                button.textContent = `Sending Request (${button.time}s)`;
             }, 1000);
         }
 
@@ -334,7 +335,8 @@
                         const responseId = document.getElementById('response-id');
                         const responseUsage = document.getElementById('response-usage');
                         responseId.textContent = `ID: ${data.id}`;
-                        requestTimer && (data.usage.time = requestTimer.time);
+                        const btn = document.getElementById('sendRequestButton');
+                        data.usage.time = btn.time;
                         responseUsage.textContent = `Usage: ${JSON.stringify(data.usage)}`;
 
                         const message = { role: 'assistant', content };
