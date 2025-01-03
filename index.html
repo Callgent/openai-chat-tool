@@ -341,6 +341,7 @@
                         const message = { role: 'assistant', content };
                         args.messages.push(message);
                         localStorage.setItem('args', JSON.stringify(args));
+                        localStorage.setItem('args-'+Date.now(), JSON.stringify(args));
                         showMessage(message);
                     }).catch(error => {
                         throw error;
