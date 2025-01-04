@@ -203,7 +203,25 @@
         <button onclick="sendRequest()" id="sendRequestButton">Send Request</button>
     </div>
 
+    <textarea id="clipboard" style="display: none;"></textarea>
     <script>
+        document.addEventListener('keydown', function (event) {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
+                const args = localStorage.getItem('args');
+                const clipboard = document.getElementById('clipboard');
+                clipboard.value = args;
+                clipboard.select();
+                document.execCommand('copy');
+            } else if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
+                const clipboard = document.getElementById('clipboard');
+                clipboard.focus();
+                document.execCommand('paste');
+                const args = clipboard.value;
+                localStorage.setItem('args', args);
+                location.reload(); // Reload to apply new args
+            }
+        });
+
         let messageIndex = 0;
         function addMessage() {
             const container = document.getElementById('messages-container');
