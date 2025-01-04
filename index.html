@@ -381,6 +381,25 @@
             });
         }
 
+        function pasteArgs(text) {
+            if (text) {
+                try {
+                    const args = JSON.parse(text);
+                    if (!args.messages?.length)
+                        toastr.warning('No messages found in clipboard!', '', { timeOut: 500 });
+                    else {
+                        localStorage.setItem('args', text);
+                        window.location.reload();
+                        toastr.success('Pasted!', '', { timeOut: 500 });
+                    }
+                } catch (err) {
+                    toastr.error(err.message, 'Invalid JSON!', { timeOut: 9000 });
+                }
+            } else {
+                toastr.warning('Not Pasted!', '', { timeOut: 500 });
+            }
+        }
+
         window.onload = function () {
             const savedArgs = JSON.parse(localStorage.getItem('args')) || {};
             document.getElementById('url').value = savedArgs.url || '';
@@ -411,89 +430,77 @@
                     textareaContainer.classList.toggle('maximized');
                 }
             });
-        }
 
-        document.getElementById('copyAllButton').addEventListener('click', function () {
-            const clipboard = document.getElementById('clipboard');
-            clipboard.value = localStorage.getItem('args') || '';
-            if (clipboard.value) {
-                clipboard.select();
-                try {
-                    document.execCommand('copy');
-                    toastr.success('Copied!', '', { timeOut: 500 });
-                } catch (err) {
-                    toastr.error(err.message, 'Copy failed!', { timeOut: 9000 });
-                }
-            } else {
-                toastr.warning('Nothing to copy!', '', { timeOut: 500 });
-            }
-        });
-
-        document.getElementById('pasteAllButton').addEventListener('click', async function () {
-            let text = '';
-
-            if (navigator.clipboard && navigator.clipboard.readText) {
-                try {
-                    text = await navigator.clipboard.readText();
-                } catch (err) {
-                    console.error('navigator.clipboard.readText() failed:', err);
-                }
-            }
-
-            if (!text) {
+            document.getElementById('copyAllButton').addEventListener('click', function () {
                 const clipboard = document.getElementById('clipboard');
-                try {
+                clipboard.value = localStorage.getItem('args') || '';
+                if (clipboard.value) {
+                    clipboard.select();
+                    try {
+                        document.execCommand('copy');
+                        toastr.success('Copied!', '', { timeOut: 500 });
+                    } catch (err) {
+                        toastr.error(err.message, 'Copy failed!', { timeOut: 9000 });
+                    }
+                } else {
+                    toastr.warning('Nothing to copy!', '', { timeOut: 500 });
+                }
+            });
+
+            document.getElementById('pasteAllButton').addEventListener('click', async function () {
+                let text = '';
+
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    try {
+                        text = await navigator.clipboard.readText();
+                    } catch (err) {
+                        console.error('navigator.clipboard.readText() failed:', err);
+                    }
+                }
+
+                if (!text) {
+                    const clipboard = document.getElementById('clipboard');
+                    try {
+                        clipboard.focus();
+                        clipboard.select();
+                        document.execCommand('paste');
+                    } catch (err) {
+                        toastr.error(err.message, 'Paste failed!', { timeOut: 9000 });
+                    }
+                }
+
+                if (!text) {
+                    const clipboard = document.getElementById('clipboard');
+                    clipboard.style.display = 'fixed';
+                    clipboard.style.top = '0';
+                    clipboard.style.left = '0';
+                    clipboard.style.width = '100%';
+                    clipboard.style.height = '';
+                    clipboard.style.bottom = '5rem';
+                    clipboard.style.paddingTop = '2rem';
+                    clipboard.zIndex = 10001;
                     clipboard.focus();
                     clipboard.select();
-                    document.execCommand('paste');
-                } catch (err) {
-                    toastr.error(err.message, 'Paste failed!', { timeOut: 9000 });
+
+                    // 提示用户手动粘贴内容
+                    toastr.info('Please paste the content into the input field.', '', { timeOut: 5000 });
+
+                    // 监听输入框的输入事件
+                    clipboard.addEventListener('input', function () {
+                        const text = clipboard.value;
+                        pasteArgs(text);
+                    });
                 }
-            }
 
-            if (!text) {
-                const clipboard = document.getElementById('clipboard');
-                clipboard.style.display = 'fixed';
-                clipboard.style.top = '0';
-                clipboard.style.left = '0';
-                clipboard.style.width = '100%';
-                clipboard.style.height = '';
-                clipboard.style.bottom = '5rem';
-                clipboard.style.paddingTop = '2rem';
-                clipboard.zIndex = 10001;
-                clipboard.focus();
-                clipboard.select();
+                pasteArgs(text);
+            });
 
-                // 提示用户手动粘贴内容
-                toastr.info('Please paste the content into the input field.', '', { timeOut: 5000 });
-
-                // 监听输入框的输入事件
-                clipboard.addEventListener('input', function () {
-                    const text = clipboard.value;
-                    pasetArgs(text);
-                });
-            }
-
-            pasetArgs(text);
-        });
-
-        function pasetArgs(text) {
-            if (text) {
-                try {
-                    const args = JSON.parse(text);
-                    if (!args.messages?.length)
-                        toastr.warning('No messages found in clipboard!', '', { timeOut: 500 });
-                    else {
-                        localStorage.setItem('args', text);
-                        window.location.reload();
-                        toastr.success('Pasted!', '', { timeOut: 500 });
-                    }
-                } catch (err) {
-                    toastr.error(err.message, 'Invalid JSON!', { timeOut: 9000 });
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    // 退出最大化
+                    document.querySelectorAll('.textarea-container.maximized').forEach(div => div.classList.remove('maximized'));
                 }
-            } else {
-                toastr.warning('Not Pasted!', '', { timeOut: 500 });
-            }
+            });
         }
     </script>
 </body>
