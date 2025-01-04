@@ -347,8 +347,8 @@
 
                         const message = { role: 'assistant', content };
                         args.messages.push(message);
+                        storeHistory(args);
                         localStorage.setItem('args', JSON.stringify(args));
-                        localStorage.setItem('args-' + Date.now(), JSON.stringify(args));
                         showMessage(message);
                     }).catch(error => {
                         throw error;
@@ -365,6 +365,20 @@
             const container = addMessage();
             container.querySelector(`input[value="${message.role}"]`).checked = true;
             container.querySelector('textarea').value = message.content;
+        }
+
+        function storeHistory(args) {
+            localStorage.setItem('args-' + Date.now(), JSON.stringify(args));
+            toastr.success('Histories older than 30 days are auto cleared', 'Saved in History', { timeOut: 500 });
+            // clear history before 30 days
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+                if (key.startsWith('args-')) {
+                    const timestamp = key.replace('args-', '');
+                    if (Date.now() - timestamp > 30 * 24 * 60 * 60 * 1000)
+                        localStorage.removeItem(key);
+                }
+            });
         }
 
         window.onload = function () {
