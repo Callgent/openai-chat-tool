@@ -418,7 +418,6 @@
         document.getElementById('pasteAllButton').addEventListener('click', async function () {
             let text = '';
 
-            // 尝试使用 navigator.clipboard.readText()
             if (navigator.clipboard && navigator.clipboard.readText) {
                 try {
                     text = await navigator.clipboard.readText();
@@ -438,6 +437,33 @@
                 }
             }
 
+            if (!text) {
+                const clipboard = document.getElementById('clipboard');
+                clipboard.style.display = 'fixed';
+                clipboard.style.top = '0';
+                clipboard.style.left = '0';
+                clipboard.style.width = '100%';
+                clipboard.style.height = '';
+                clipboard.style.bottom = '5rem';
+                clipboard.style.paddingTop = '2rem';
+                clipboard.zIndex = 10001;
+                clipboard.focus();
+                clipboard.select();
+
+                // 提示用户手动粘贴内容
+                toastr.info('Please paste the content into the input field.', '', { timeOut: 5000 });
+
+                // 监听输入框的输入事件
+                clipboard.addEventListener('input', function () {
+                    const text = clipboard.value;
+                    pasetArgs(text);
+                });
+            }
+
+            pasetArgs(text);
+        });
+
+        function pasetArgs(text) {
             if (text) {
                 try {
                     const args = JSON.parse(text);
@@ -452,9 +478,9 @@
                     toastr.error(err.message, 'Invalid JSON!', { timeOut: 900 });
                 }
             } else {
-                toastr.warning('Clipboard is empty!', '', { timeOut: 500 });
+                toastr.warning('Not Pasted!', '', { timeOut: 500 });
             }
-        });
+        }
     </script>
 </body>
 
