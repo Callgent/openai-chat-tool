@@ -212,6 +212,7 @@
                 clipboard.value = args;
                 clipboard.select();
                 document.execCommand('copy');
+                toastr.info("All Copied", "", { timeOut: 500 });
             } else if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
                 const clipboard = document.getElementById('clipboard');
                 clipboard.focus();
@@ -219,6 +220,7 @@
                 const args = clipboard.value;
                 localStorage.setItem('args', args);
                 location.reload(); // Reload to apply new args
+                toastr.info("All Pasted", "", { timeOut: 500 });
             }
         });
 
