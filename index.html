@@ -410,21 +410,49 @@
                 } catch (err) {
                     toastr.error(err.message, 'Copy failed!', { timeOut: 900 });
                 }
+            } else {
+                toastr.warning('Nothing to copy!', '', { timeOut: 500 });
             }
         });
 
-        document.getElementById('pasteAllButton').addEventListener('click', function () {
-            const clipboard = document.getElementById('clipboard');
-            clipboard.focus();
-            try {
-                document.execCommand('paste');
-                if (clipboard.value) {
-                    localStorage.setItem('args', clipboard.value);
-                    window.location.reload();
-                    toastr.success('Pasted!', '', { timeOut: 500 });
+        document.getElementById('pasteAllButton').addEventListener('click', async function () {
+            let text = '';
+
+            // 尝试使用 navigator.clipboard.readText()
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                try {
+                    text = await navigator.clipboard.readText();
+                } catch (err) {
+                    console.error('navigator.clipboard.readText() failed:', err);
                 }
-            } catch (err) {
-                toastr.error(err.message, 'Paste failed!', { timeOut: 900 });
+            }
+
+            if (!text) {
+                const clipboard = document.getElementById('clipboard');
+                try {
+                    clipboard.focus();
+                    clipboard.select();
+                    document.execCommand('paste');
+                } catch (err) {
+                    toastr.error(err.message, 'Paste failed!', { timeOut: 900 });
+                }
+            }
+
+            if (text) {
+                try {
+                    const args = JSON.parse(text);
+                    if (!args.messages?.length)
+                        toastr.warning('No messages found in clipboard!', '', { timeOut: 500 });
+                    else {
+                        localStorage.setItem('args', text);
+                        window.location.reload();
+                        toastr.success('Pasted!', '', { timeOut: 500 });
+                    }
+                } catch (err) {
+                    toastr.error(err.message, 'Invalid JSON!', { timeOut: 900 });
+                }
+            } else {
+                toastr.warning('Clipboard is empty!', '', { timeOut: 500 });
             }
         });
     </script>
