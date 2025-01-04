@@ -209,7 +209,7 @@
         </span>
     </div>
 
-    <textarea id="clipboard" style="display: none;"></textarea>
+    <textarea id="clipboard" style="position: fixed; top: -10px; width: 0; height: 0;"></textarea>
     <script>
         let messageIndex = 0;
         function addMessage() {
@@ -399,23 +399,34 @@
             });
         }
 
-        document.getElementById('copyAllButton').addEventListener('click', function() {
-        const args = localStorage.getItem('args');
-        navigator.clipboard.writeText(args).then(function() {
-            toastr.success('Copied!', '', { timeOut: 500 });
-        }, function(err) {
-            toastr.error(err.message, 'Could not copy', { timeOut: 900 });
+        document.getElementById('copyAllButton').addEventListener('click', function () {
+            const clipboard = document.getElementById('clipboard');
+            clipboard.value = localStorage.getItem('args') || '';
+            if (clipboard.value) {
+                clipboard.select();
+                try {
+                    document.execCommand('copy');
+                    toastr.success('Copied!', '', { timeOut: 500 });
+                } catch (err) {
+                    toastr.error(err.message, 'Copy failed!', { timeOut: 900 });
+                }
+            }
         });
-    });
 
-    document.getElementById('pasteAllButton').addEventListener('click', function() {
-        navigator.clipboard.readText().then(function(text) {
-            localStorage.setItem('args', text);
-            location.reload();
-        }, function(err) {
-            toastr.error(err.message, 'Could not paste', { timeOut: 900 });
+        document.getElementById('pasteAllButton').addEventListener('click', function () {
+            const clipboard = document.getElementById('clipboard');
+            clipboard.focus();
+            try {
+                document.execCommand('paste');
+                if (clipboard.value) {
+                    localStorage.setItem('args', clipboard.value);
+                    window.location.reload();
+                    toastr.success('Pasted!', '', { timeOut: 500 });
+                }
+            } catch (err) {
+                toastr.error(err.message, 'Paste failed!', { timeOut: 900 });
+            }
         });
-    });
     </script>
 </body>
 
