@@ -369,7 +369,7 @@
 
         function storeHistory(args) {
             localStorage.setItem('args-' + Date.now(), JSON.stringify(args));
-            toastr.success('Histories older than 30 days are auto cleared', 'Saved in History', { timeOut: 500 });
+            toastr.success('Histories older than 30 days are auto cleared', 'Saved in History', { timeOut: 1000 });
             // clear history before 30 days
             const keys = Object.keys(localStorage);
             keys.forEach(key => {
