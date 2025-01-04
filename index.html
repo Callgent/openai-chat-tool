@@ -58,7 +58,8 @@
             background-color: #f9f9f9;
         }
 
-        .textarea-container.focused, .textarea-container:hover {
+        .textarea-container.focused,
+        .textarea-container:hover {
             position: relative;
         }
 
@@ -96,7 +97,8 @@
             padding: 5px;
         }
 
-        .textarea-container.focused .maximize-button, .textarea-container:hover .maximize-button {
+        .textarea-container.focused .maximize-button,
+        .textarea-container:hover .maximize-button {
             display: inline-block;
             position: absolute;
             padding: 10px;
@@ -139,10 +141,10 @@
             bottom: 0;
             width: 100%;
             background-color: #fff;
-            padding: 10px 20px;
+            padding: 10px 0px;
             box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
         }
 
         .fixed-bottom button {
@@ -198,32 +200,16 @@
         </div>
     </div>
     <div class="fixed-bottom">
-        <span style="float: right; font-size: smaller; margin: 1em; word-break: break-word;">Support:
-            response.choices[0].message.content</span>
-        <button onclick="sendRequest()" id="sendRequestButton">Send Request</button>
+        <span style="font-size: smaller; margin: 0 1em;">
+            <button id="copyAllButton">Copy All</button>
+            <button id="pasteAllButton">Paste All</button>
+        </span>
+        <span style="margin: 0 1em;">
+            <button onclick="sendRequest()" id="sendRequestButton">Send Request</button>
+        </span>
     </div>
 
-    <textarea id="clipboard" style="display: none;"></textarea>
     <script>
-        document.addEventListener('keydown', function (event) {
-            if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
-                const args = localStorage.getItem('args');
-                const clipboard = document.getElementById('clipboard');
-                clipboard.value = args;
-                clipboard.select();
-                document.execCommand('copy');
-                toastr.info("All Copied", "", { timeOut: 500 });
-            } else if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
-                const clipboard = document.getElementById('clipboard');
-                clipboard.focus();
-                document.execCommand('paste');
-                const args = clipboard.value;
-                localStorage.setItem('args', args);
-                location.reload(); // Reload to apply new args
-                toastr.info("All Pasted", "", { timeOut: 500 });
-            }
-        });
-
         let messageIndex = 0;
         function addMessage() {
             const container = document.getElementById('messages-container');
@@ -361,7 +347,7 @@
                         const message = { role: 'assistant', content };
                         args.messages.push(message);
                         localStorage.setItem('args', JSON.stringify(args));
-                        localStorage.setItem('args-'+Date.now(), JSON.stringify(args));
+                        localStorage.setItem('args-' + Date.now(), JSON.stringify(args));
                         showMessage(message);
                     }).catch(error => {
                         throw error;
@@ -411,6 +397,24 @@
                 }
             });
         }
+
+        document.getElementById('copyAllButton').addEventListener('click', function() {
+        const params = document.getElementById('params').value;
+        navigator.clipboard.writeText(params).then(function() {
+            console.log('Copied to clipboard successfully!');
+        }, function(err) {
+            console.error('Could not copy text: ', err);
+        });
+    });
+
+    document.getElementById('pasteAllButton').addEventListener('click', function() {
+        navigator.clipboard.readText().then(function(text) {
+            document.getElementById('params').value = text;
+            console.log('Pasted from clipboard successfully!');
+        }, function(err) {
+            console.error('Could not read text from clipboard: ', err);
+        });
+    });
     </script>
 </body>
 
