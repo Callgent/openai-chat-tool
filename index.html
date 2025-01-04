@@ -209,6 +209,7 @@
         </span>
     </div>
 
+    <textarea id="clipboard" style="display: none;"></textarea>
     <script>
         let messageIndex = 0;
         function addMessage() {
@@ -399,20 +400,20 @@
         }
 
         document.getElementById('copyAllButton').addEventListener('click', function() {
-        const params = document.getElementById('params').value;
-        navigator.clipboard.writeText(params).then(function() {
-            console.log('Copied to clipboard successfully!');
+        const args = localStorage.getItem('args');
+        navigator.clipboard.writeText(args).then(function() {
+            toastr.success('Copied!', '', { timeOut: 500 });
         }, function(err) {
-            console.error('Could not copy text: ', err);
+            toastr.error(err.message, 'Could not copy', { timeOut: 900 });
         });
     });
 
     document.getElementById('pasteAllButton').addEventListener('click', function() {
         navigator.clipboard.readText().then(function(text) {
-            document.getElementById('params').value = text;
-            console.log('Pasted from clipboard successfully!');
+            localStorage.setItem('args', text);
+            location.reload();
         }, function(err) {
-            console.error('Could not read text from clipboard: ', err);
+            toastr.error(err.message, 'Could not paste', { timeOut: 900 });
         });
     });
     </script>
