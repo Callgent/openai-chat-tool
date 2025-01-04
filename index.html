@@ -337,7 +337,7 @@
                     .then(data => {
                         const content = data.choices?.length && data.choices[0].message?.content;
                         if (!content)
-                            return toastr.error(JSON.stringify(data), data.statusCode, { timeOut: 1500 });
+                            return toastr.error(JSON.stringify(data), data.statusCode, { timeOut: 5000 });
 
                         const responseId = document.getElementById('response-id');
                         const responseUsage = document.getElementById('response-usage');
@@ -357,7 +357,7 @@
                     });
             } catch (error) {
                 // 显示错误消息为Toast
-                toastr.error(error.message, error.name, { timeOut: 500 });
+                toastr.error(error.message, error.name, { timeOut: 5000 });
             }
         }
 
@@ -408,7 +408,7 @@
                     document.execCommand('copy');
                     toastr.success('Copied!', '', { timeOut: 500 });
                 } catch (err) {
-                    toastr.error(err.message, 'Copy failed!', { timeOut: 900 });
+                    toastr.error(err.message, 'Copy failed!', { timeOut: 9000 });
                 }
             } else {
                 toastr.warning('Nothing to copy!', '', { timeOut: 500 });
@@ -433,7 +433,7 @@
                     clipboard.select();
                     document.execCommand('paste');
                 } catch (err) {
-                    toastr.error(err.message, 'Paste failed!', { timeOut: 900 });
+                    toastr.error(err.message, 'Paste failed!', { timeOut: 9000 });
                 }
             }
 
@@ -475,7 +475,7 @@
                         toastr.success('Pasted!', '', { timeOut: 500 });
                     }
                 } catch (err) {
-                    toastr.error(err.message, 'Invalid JSON!', { timeOut: 900 });
+                    toastr.error(err.message, 'Invalid JSON!', { timeOut: 9000 });
                 }
             } else {
                 toastr.warning('Not Pasted!', '', { timeOut: 500 });
