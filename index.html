@@ -383,7 +383,7 @@
             toastr.success('Saved in History' + (removed ? `, ${removed} oldest history cleared!` : ''), '', { timeOut: 1000 });
         }
 
-        function clearHistory({ count = -1, days = 30 }) {
+        function clearHistory({ count = -1, days = 30 } = {}) {
             let ret = 0;
             const keys = Object.keys(localStorage).sort();
             keys.find(key => {
