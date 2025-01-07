@@ -375,9 +375,10 @@
                 removed = clearHistory();
             } catch (err) {
                 // if QuotaExceededError, clear 10 oldest history
-                if (err.name === 'QuotaExceededError')
+                if (err.name === 'QuotaExceededError') {
                     removed = clearHistory({ count: 10 });
-                else throw err;
+                    removed && storeHistory(args);
+                } else throw err;
             }
             toastr.success('Saved in History' + (removed ? `, ${removed} oldest history cleared!` : ''), '', { timeOut: 1000 });
         }
