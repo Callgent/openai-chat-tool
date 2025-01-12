@@ -3,7 +3,7 @@ Simple tool to construct completions request.
 
 Configs and messages are only stored in local-storage.
 
-[Click here](https://callgent.github.io/openai-chat-tool/) to access.
+[Click here](https://callgent.github.io/prompt-tuning/) to have a try.
 
 Screenshot:
 
