@@ -380,7 +380,9 @@
                     removed && storeHistory(args);
                 } else throw err;
             }
-            toastr.success('Saved in History' + (removed ? `, ${removed} oldest history cleared!` : ''), '', { timeOut: 1000 });
+            removed 
+                ? toastr.warn(`Saved in History, ${removed} oldest history cleared!`, '', { timeOut: 5000 })
+                : toastr.success('Saved in History', '', { timeOut: 1000 });
         }
 
         function clearHistory({ count = -1, days = 30 } = {}) {
