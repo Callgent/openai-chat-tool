@@ -1,5 +1,7 @@
-# openai-chat-tool
+# openai-compatible-prompt-tuning-tool
 Simple tool to construct completions request.
+
+Best for prompt tuning!
 
 Configs and messages are only stored in local-storage.
 
