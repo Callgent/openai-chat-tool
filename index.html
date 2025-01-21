@@ -381,7 +381,7 @@
                 } else throw err;
             }
             removed 
-                ? toastr.warn(`Saved in History, ${removed} oldest history cleared!`, '', { timeOut: 5000 })
+                ? toastr.warning(`Saved in History, ${removed} oldest history cleared!`, '', { timeOut: 5000 })
                 : toastr.success('Saved in History', '', { timeOut: 1000 });
         }
 
